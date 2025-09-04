@@ -25,7 +25,8 @@ from rest_framework_simplejwt.views import (
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/users/', include('users.urls')),
+    path('api/users/', include('users.urls')), # 회원가입
+    path('api/community/', include('community.urls')), # 게시판 관련 통합 백엔드
 
     # simplejwt 관련
     # 1. 로그인 (Access Token, Refresh Token 발급)
