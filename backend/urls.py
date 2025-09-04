@@ -17,7 +17,19 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include #include 를 import 해야 users와 같은 앱에서 url 호출 가능
 
+# simplejwt 관련 View 들을 import
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/users/', include('users.urls')),
+
+    # simplejwt 관련
+    # 1. 로그인 (Access Token, Refresh Token 발급)
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+
 ]
