@@ -7,4 +7,4 @@ class User(AbstractUser):
 	# 예시) nickname = models.CharField(max_length=50, unique=True, null=True)
 	
 	# 지금은 추가기능 없이 기본기능만 사용하기 위해 pass 사용
-    pass
+    nickname = models.CharField(max_length=50, unique=True, null=True)
