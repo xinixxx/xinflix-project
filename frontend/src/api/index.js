@@ -16,5 +16,8 @@ export default {
     // apiClient.post(url, data) 형식으로 요청을 보냅니다.
     return apiClient.post("users/signup/", data);
   },
-  // 여기에 login, getPosts 등의 함수를 추가할 예정임
+  // 여기에 login, getPosts 등의 함수를 추가할 예정
+  login(data) {
+    return apiClient.post("token/", data); // simplejwt 의 기본 토큰 발급 URL
+  },
 };
