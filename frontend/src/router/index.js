@@ -7,6 +7,8 @@ import SignupView from "../views/SignupView.vue";
 import LoginView from "../views/LoginView.vue";
 // BoardView 를 import
 import BoardView from "../views/BoardView.vue";
+// VideoView 를 import
+import VideoView from "../views/VideoView.vue";
 
 const routes = [
   {
@@ -40,6 +42,11 @@ const routes = [
     path: "/board",
     name: "board",
     component: BoardView,
+  },
+  {
+    path: "/videos",
+    name: "videos",
+    component: VideoView,
   },
 ];
 

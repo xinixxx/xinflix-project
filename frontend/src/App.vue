@@ -2,6 +2,7 @@
   <nav>
     <router-link to="/">Home</router-link> |
     <router-link to="/board">게시판</router-link> |
+    <router-link to="/videos">동영상</router-link> |
 
     <span v-if="!authStore.isLoggedIn">
       <router-link to="/signup">회원가입</router-link> |

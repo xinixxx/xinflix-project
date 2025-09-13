@@ -47,4 +47,16 @@ export default {
   createPost(data) {
     return apiClient.post("community/posts/", data);
   },
+  // 영상 리스트 불러오기
+  getVideos() {
+    return apiClient.get("videos/");
+  },
+  // 영상 파일 업로드
+  uploadVideo(formData) {
+    return apiClient.post("videos/", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data", // 헤더를 'multipart/form-data' 로 명시
+      },
+    });
+  },
 };
