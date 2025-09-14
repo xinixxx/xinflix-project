@@ -9,6 +9,8 @@ import LoginView from "../views/LoginView.vue";
 import BoardView from "../views/BoardView.vue";
 // VideoView 를 import
 import VideoView from "../views/VideoView.vue";
+// VideoDetailView 를 import
+import VideoDetailView from "../views/VideoDetailView.vue";
 
 const routes = [
   {
@@ -47,6 +49,12 @@ const routes = [
     path: "/videos",
     name: "videos",
     component: VideoView,
+  },
+  {
+    // 예: /videos/1 , /videos/2
+    path: "/videos/:id",
+    name: "video-detail",
+    component: VideoDetailView,
   },
 ];
 

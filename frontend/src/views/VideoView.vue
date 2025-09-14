@@ -46,16 +46,16 @@
       <h2>동영상 목록</h2>
       <ul>
         <li v-for="video in videos" :key="video.id">
-          <img :src="video.thumbnail" :alt="video.title" class="thumbnail" />
+          <router-link :to="{ name: 'video-detail', params: { id: video.id } }">
+            <img :src="video.thumbnail" :alt="video.title" class="thumbnail" />
+          </router-link>
           <div class="video-info">
-            <h3>{{ video.title }}</h3>
+            <router-link
+              :to="{ name: 'video-detail', params: { id: video.id } }"
+            >
+              <h3>{{ video.title }}</h3>
+            </router-link>
             <p>업로더: {{ video.uploader_username }}</p>
-            <video
-              :src="video.video_file"
-              controls
-              class="video-player"
-            ></video>
-            <!-- day 9 때는 세부 페이지로 영상 옮길 예정이라 video 란 삭제 예정 -->
           </div>
         </li>
       </ul>

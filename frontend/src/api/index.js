@@ -51,6 +51,10 @@ export default {
   getVideos() {
     return apiClient.get("videos/");
   },
+  getVideoDetail(id) {
+    // Videos/1/ 과 같은 url로 요청을 보냅니다
+    return apiClient.get(`videos/${id}/`);
+  },
   // 영상 파일 업로드
   uploadVideo(formData) {
     return apiClient.post("videos/", formData, {
