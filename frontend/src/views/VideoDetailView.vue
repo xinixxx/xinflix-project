@@ -2,7 +2,7 @@
   <div class="video-detail-container" v-if="video">
     <h1>{{ video.title }}</h1>
     <p class="meta">
-      업로더 : {{ video.uploader_username }} | 게시일:
+      업로더: {{ video.uploader_username }} | 게시일:
       {{ new Date(video.created_at).toLocaleDateString() }}
     </p>
     <video
@@ -14,26 +14,81 @@
     <div class="description">
       <p>{{ video.description }}</p>
     </div>
+
+    <hr />
+    <div class="comments-section">
+      <h2>댓글 ({{ comments.length }})</h2>
+
+      <div v-if="authStore.isLoggedIn" class="comment-form">
+        <form @submit.prevent="submitComment">
+          <textarea
+            v-model="newComment.content"
+            placeholder="댓글을 입력하세요..."
+            required
+          ></textarea>
+          <button type="submit">등록</button>
+        </form>
+      </div>
+
+      <ul class="comment-list">
+        <li v-for="comment in comments" :key="comment.id">
+          <p>
+            <strong>{{ comment.author_username }}</strong>
+          </p>
+          <p>{{ comment.content }}</p>
+          <span class="comment-date">{{
+            new Date(comment.created_at).toLocaleString()
+          }}</span>
+        </li>
+      </ul>
+    </div>
   </div>
   <div v-else>
-    <p>동영상을 불러오는 중...</p>
+    <p>동영상을 불러오는 중입니다...</p>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, reactive, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import api from "@/api";
+import { useAuthStore } from "@/store/auth"; // authStore import 추가
 
-const route = useRoute(); // 현재 라우트 정보를 가져오기 위한 훅
+const route = useRoute();
+const authStore = useAuthStore(); // authStore 사용
 const video = ref(null);
+const comments = ref([]); // 댓글 목록을 담을 ref
+const newComment = reactive({ content: "" }); // 새 댓글 내용을 담을 reactive 객체
+const videoId = route.params.id; // videoId를 script setup 최상위에서 접근 가능하도록 변경
 
-// 컴포넌트가 마운트(생성)되면 실행됩니다.
+// 댓글 목록을 불러오는 함수
+const fetchComments = async () => {
+  try {
+    const response = await api.getComments(videoId);
+    comments.value = response.data;
+  } catch (error) {
+    console.error("댓글을 불러오는데 실패했습니다.", error);
+  }
+};
+
+// 새 댓글을 작성하는 함수
+const submitComment = async () => {
+  try {
+    await api.createComment(videoId, newComment);
+    newComment.content = ""; // 폼 초기화
+    fetchComments(); // 댓글 목록 새로고침
+  } catch (error) {
+    console.error("댓글 작성에 실패했습니다.", error);
+    alert("댓글 작성에 실패했습니다.");
+  }
+};
+
 onMounted(async () => {
   try {
-    const videoId = route.params.id; // URL 주소에 포함된 :id 값을 가져옵니다.
-    const response = await api.getVideoDetail(videoId); // 해당 ID의 비디오 정보를 API로 요청
-    video.value = response.data; // 응답 데이터를 video 변수에 저장
+    const response = await api.getVideoDetail(videoId);
+    video.value = response.data;
+    // 동영상 정보를 불러온 후, 댓글 목록도 함께 불러옵니다.
+    fetchComments();
   } catch (error) {
     console.error("동영상 정보를 불러오는데 실패했습니다.", error);
   }
@@ -61,5 +116,50 @@ onMounted(async () => {
   border-radius: 8px;
   line-height: 1.7;
   white-space: pre-wrap; /* \n 같은 줄바꿈 문자를 그대로 표시 */
+}
+hr {
+  border: none;
+  border-top: 1px solid #eaeaea;
+  margin: 40px 0;
+}
+.comments-section h2 {
+  margin-bottom: 20px;
+}
+.comment-form textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  resize: vertical;
+}
+.comment-form button {
+  padding: 10px 15px;
+  background-color: #42b983;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  float: right;
+}
+.comment-list {
+  list-style: none;
+  padding: 0;
+  margin-top: 60px; /* 폼과의 간격 확보 */
+}
+.comment-list li {
+  border-bottom: 1px solid #eaeaea;
+  padding: 15px 0;
+}
+.comment-list p {
+  margin: 0 0 5px 0;
+}
+.comment-list strong {
+  font-size: 1.1em;
+}
+.comment-date {
+  font-size: 0.8em;
+  color: #888;
 }
 </style>

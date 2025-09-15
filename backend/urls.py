@@ -30,9 +30,9 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/users/', include('users.urls')), # 회원가입
-    path('api/community/', include('community.urls')), # 게시판 관련 통합 백엔드
-    path('api/videos/', include('videos.urls')), # 동영상 관련 통합 백엔드
+    path('api/', include('users.urls')),
+    path('api/', include('community.urls')),
+    path('api/', include('videos.urls')),
 
     # simplejwt 관련
     # 1. 로그인 (Access Token, Refresh Token 발급)
