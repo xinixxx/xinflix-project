@@ -11,6 +11,11 @@
       autoplay
       class="video-player"
     ></video>
+    <div class="actions">
+      <button @click="pressLike" :class="{ liked: video.is_liked }">
+        👍 좋아요 ({{ video.like_count }})
+      </button>
+    </div>
     <div class="description">
       <p>{{ video.description }}</p>
     </div>
@@ -68,6 +73,29 @@ const fetchComments = async () => {
     comments.value = response.data;
   } catch (error) {
     console.error("댓글을 불러오는데 실패했습니다.", error);
+  }
+};
+
+const pressLike = async () => {
+  if (!authStore.isLoggedIn) {
+    alert("로그인이 필요합니다.");
+    return;
+  }
+
+  console.log('"좋아요" 버튼 클릭! API에 전달할 비디오 ID:', video.value.id);
+
+  try {
+    await api.toggleLike(video.value.id);
+    // 좋아요 성공 후, 화면을 새로고침하지 않고 바로 UI에 반영
+    if (video.value.is_liked) {
+      video.value.like_count -= 1; // 좋아요 취소
+    } else {
+      video.value.like_count += 1; // 좋아요
+    }
+    video.value.is_liked = !video.value.is_liked; // is_liked 상태 반전
+  } catch (error) {
+    console.error("좋아요 처리에 실패했습니다.", error);
+    alert("좋아요 처리에 실패했습니다.");
   }
 };
 
@@ -161,5 +189,22 @@ hr {
 .comment-date {
   font-size: 0.8em;
   color: #888;
+}
+.actions {
+  margin-bottom: 20px;
+}
+.actions button {
+  padding: 10px 15px;
+  border: 1px solid #ccc;
+  border-radius: 20px;
+  background-color: #f5f5f5;
+  cursor: pointer;
+  font-size: 1em;
+}
+/* 좋아요를 눌렀을 때의 스타일 */
+.actions button.liked {
+  background-color: #007bff;
+  color: white;
+  border-color: #007bff;
 }
 </style>
