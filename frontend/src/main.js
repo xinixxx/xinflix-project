@@ -2,6 +2,7 @@ import { createApp } from "vue";
 import { createPinia } from "pinia"; // Pinia 추가
 import App from "./App.vue";
 import router from "./router";
+import "./assets/tailwind.css";
 
 const app = createApp(App);
 

@@ -1,64 +1,103 @@
 <template>
-  <div class="video-container">
-    <h1>동영상</h1>
+  <div class="container mx-auto my-12 px-4">
+    <h1 class="text-4xl font-bold text-center mb-10 text-gray-800">동영상</h1>
 
-    <div v-if="authStore.isLoggedIn" class="upload-form">
-      <h3>새 동영상 업로드</h3>
-      <form @submit.prevent="submitVideo">
+    <div
+      v-if="authStore.isLoggedIn"
+      class="upload-form bg-white p-6 rounded-lg shadow-md mb-12 max-w-2xl mx-auto"
+    >
+      <h3 class="text-2xl font-semibold mb-4 text-gray-700">
+        새 동영상 업로드
+      </h3>
+      <form @submit.prevent="submitVideo" class="space-y-4">
         <input
           type="text"
           v-model="newVideo.title"
           placeholder="제목"
           required
+          class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <textarea
           v-model="newVideo.description"
           placeholder="설명"
           required
+          class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         ></textarea>
 
-        <div>
-          <label for="thumbnail">썸네일 이미지:</label>
-          <input
-            type="file"
-            @change="handleThumbnailUpload"
-            accept="image/*"
-            required
-          />
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label
+              for="thumbnail"
+              class="block text-sm font-medium text-gray-700 mb-1"
+              >썸네일 이미지:</label
+            >
+            <input
+              id="thumbnail"
+              type="file"
+              @change="handleThumbnailUpload"
+              accept="image/*"
+              required
+              class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+            />
+          </div>
+          <div>
+            <label
+              for="video"
+              class="block text-sm font-medium text-gray-700 mb-1"
+              >동영상 파일:</label
+            >
+            <input
+              id="video"
+              type="file"
+              @change="handleVideoUpload"
+              accept="video/*"
+              required
+              class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100"
+            />
+          </div>
         </div>
 
-        <div>
-          <label for="video">동영상 파일:</label>
-          <input
-            type="file"
-            @change="handleVideoUpload"
-            accept="video/*"
-            required
-          />
-        </div>
-
-        <button type="submit">업로드</button>
+        <button
+          type="submit"
+          class="w-full bg-violet-500 text-white font-bold py-2 px-4 rounded-md hover:bg-violet-600 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-opacity-50 transition-colors duration-300"
+        >
+          업로드
+        </button>
       </form>
     </div>
-    <hr />
+    <hr v-if="authStore.isLoggedIn" class="my-12 border-t border-gray-200" />
 
     <div class="video-list">
-      <h2>동영상 목록</h2>
-      <ul>
-        <li v-for="video in videos" :key="video.id">
+      <h2 class="text-3xl font-bold mb-6 text-gray-800">전체 동영상</h2>
+      <div
+        v-if="videos.length > 0"
+        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+      >
+        <div
+          v-for="video in videos"
+          :key="video.id"
+          class="bg-white rounded-lg shadow-md overflow-hidden transform hover:-translate-y-1 hover:shadow-xl transition-all duration-300"
+        >
           <router-link :to="{ name: 'video-detail', params: { id: video.id } }">
-            <img :src="video.thumbnail" :alt="video.title" class="thumbnail" />
+            <img
+              :src="video.thumbnail"
+              :alt="video.title"
+              class="w-full h-48 object-cover"
+            />
           </router-link>
-          <div class="video-info">
-            <router-link
-              :to="{ name: 'video-detail', params: { id: video.id } }"
-            >
-              <h3>{{ video.title }}</h3>
-            </router-link>
-            <p>업로더: {{ video.uploader_username }}</p>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-gray-900 truncate">
+              {{ video.title }}
+            </h3>
+            <p class="text-sm text-gray-600 mt-1">
+              {{ video.uploader_username }}
+            </p>
           </div>
-        </li>
-      </ul>
+        </div>
+      </div>
+      <div v-else class="text-center text-gray-500 py-10">
+        <p>아직 업로드된 동영상이 없습니다.</p>
+      </div>
     </div>
   </div>
 </template>
@@ -128,34 +167,3 @@ const submitVideo = async () => {
 
 onMounted(fetchVideos);
 </script>
-
-<style scoped>
-.video-container {
-  max-width: 800px;
-  margin: 40px auto; /* ... */
-}
-.upload-form div {
-  margin-bottom: 15px;
-}
-.video-list li {
-  display: flex;
-  align-items: flex-start;
-  margin-bottom: 20px;
-}
-.thumbnail {
-  width: 160px;
-  height: 90px;
-  object-fit: cover;
-  margin-right: 15px;
-  border-radius: 4px;
-}
-.video-info {
-  flex-grow: 1;
-} /* 추가: 제목 등이 비디오 옆 공간을 채우도록 함 */
-.video-player {
-  width: 100%; /* 부모 요소 너비에 맞춤 */
-  max-width: 640px; /* 너무 커지지 않도록 최대 너비 지정 */
-  margin-top: 10px;
-  border-radius: 4px;
-}
-</style>

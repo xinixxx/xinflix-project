@@ -34,10 +34,10 @@ export default {
 
   // 게시판 API
   getPosts() {
-    return apiClient.get("community/posts/");
+    return apiClient.get("posts/");
   },
   createPost(data) {
-    return apiClient.post("community/posts/", data);
+    return apiClient.post("posts/", data);
   },
 
   // 동영상 API

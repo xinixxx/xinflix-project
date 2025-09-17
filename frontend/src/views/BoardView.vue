@@ -1,34 +1,57 @@
 <template>
-  <div class="board-container">
-    <h1>자유 게시판</h1>
+  <div
+    class="container mx-auto my-12 p-8 bg-white rounded-lg shadow-lg max-w-3xl"
+  >
+    <h1 class="text-4xl font-bold text-center mb-8 text-gray-800">
+      자유 게시판
+    </h1>
 
-    <div v-if="authStore.isLoggedIn" class="post-form">
-      <h3>새 글 작성</h3>
-      <form @submit.prevent="submitPost">
+    <div v-if="authStore.isLoggedIn" class="mb-10">
+      <h3 class="text-2xl font-semibold mb-4 text-gray-700">새 글 작성</h3>
+      <form @submit.prevent="submitPost" class="space-y-4">
         <input
           type="text"
           v-model="newPost.title"
-          placeholder="제목"
+          placeholder="제목을 입력하세요"
           required
+          class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <textarea
           v-model="newPost.content"
-          placeholder="내용"
+          placeholder="내용을 입력하세요"
           required
+          rows="5"
+          class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         ></textarea>
-        <button type="submit">작성</button>
+        <button
+          type="submit"
+          class="w-full bg-blue-500 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors duration-300"
+        >
+          작성
+        </button>
       </form>
     </div>
 
-    <hr />
+    <hr class="my-10 border-t border-gray-200" />
 
     <div class="post-list">
-      <h2>게시글 목록</h2>
-      <ul>
-        <li v-for="post in posts" :key="post.id">
-          <h3>{{ post.title }}</h3>
-          <p>작성자: {{ post.author_username }}</p>
-          <p>{{ post.content }}</p>
+      <h2 class="text-3xl font-bold mb-6 text-gray-800">게시글 목록</h2>
+      <ul class="space-y-6">
+        <li
+          v-for="post in posts"
+          :key="post.id"
+          class="bg-gray-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300"
+        >
+          <h3 class="text-2xl font-semibold text-gray-900 mb-2">
+            {{ post.title }}
+          </h3>
+          <p class="text-sm text-gray-500 mb-4">
+            작성자:
+            <span class="font-medium text-gray-700">{{
+              post.author_username
+            }}</span>
+          </p>
+          <p class="text-gray-700 leading-relaxed">{{ post.content }}</p>
         </li>
       </ul>
     </div>
@@ -76,105 +99,3 @@ onMounted(() => {
   fetchPosts();
 });
 </script>
-
-<style scoped>
-/* 전체 컨테이너에 그림자 효과와 부드러운 폰트를 적용합니다. */
-.board-container {
-  max-width: 600px; /* 너비를 조금 늘려 답답함을 해소합니다. */
-  margin: 40px auto;
-  padding: 30px;
-  border: 1px solid #eaeaea;
-  border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
-    Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-}
-
-/* 제목(h1, h2, h3) 아래에 적절한 간격을 추가합니다. */
-h1,
-h2,
-h3 {
-  margin-top: 0;
-  margin-bottom: 20px;
-}
-
-h1 {
-  text-align: center;
-  margin-bottom: 30px;
-}
-
-/* 구분선 스타일을 깔끔하게 변경합니다. */
-hr {
-  border: none;
-  border-top: 1px solid #eaeaea;
-  margin: 30px 0;
-}
-
-/* 글쓰기 폼 스타일 */
-.post-form {
-  display: flex;
-  flex-direction: column; /* 요소들을 세로로 정렬합니다. */
-}
-
-/* 입력 필드와 버튼에 통일된 스타일과 간격을 적용합니다. */
-.post-form input,
-.post-form textarea,
-.post-form button {
-  width: 100%;
-  padding: 12px;
-  margin-bottom: 15px; /* 각 요소 아래에 간격을 줍니다. */
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  box-sizing: border-box; /* 패딩과 테두리를 너비에 포함시킵니다. */
-  font-size: 1em;
-}
-
-.post-form textarea {
-  min-height: 120px; /* 텍스트 영역의 최소 높이를 지정합니다. */
-  resize: vertical; /* 세로로만 크기 조절이 가능하도록 합니다. */
-}
-
-/* 버튼 스타일 및 호버 효과 */
-.post-form button {
-  background-color: #42b983;
-  color: white;
-  border: none;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.post-form button:hover {
-  background-color: #36a473; /* 마우스를 올렸을 때 색상을 살짝 어둡게 합니다. */
-}
-
-/* 게시글 목록 스타일 */
-.post-list ul {
-  list-style: none;
-  padding: 0;
-}
-
-/* 각 게시글을 카드 형태로 만듭니다. */
-.post-list li {
-  border: 1px solid #eaeaea;
-  padding: 20px;
-  margin-bottom: 15px;
-  border-radius: 8px;
-  background-color: #fafafa;
-}
-
-.post-list h3 {
-  margin-bottom: 10px;
-}
-
-.post-list p {
-  margin: 0;
-  color: #555;
-  line-height: 1.6;
-}
-
-.post-list p:first-of-type {
-  font-size: 0.9em;
-  color: #888;
-  margin-bottom: 10px;
-}
-</style>
