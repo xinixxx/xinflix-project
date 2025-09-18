@@ -1,18 +1,107 @@
 <template>
-  <div class="home">
-    <img alt="Vue logo" src="../assets/logo.png" />
-    <HelloWorld msg="유튜브 클론 제작 테스트" />
+  <div class="container mx-auto my-12 px-4 pb-12">
+    <div class="bg-white rounded-lg shadow-lg p-8 mb-12 text-center">
+      <h1 class="text-4xl font-bold text-gray-800 mb-2">XINFLIX</h1>
+      <p class="text-gray-600">최신 동영상과 게시글을 확인해보세요.</p>
+    </div>
+
+    <div class="mb-12">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-3xl font-bold text-gray-800">최신 동영상</h2>
+        <router-link to="/videos" class="text-blue-500 hover:underline"
+          >더보기 &rarr;</router-link
+        >
+      </div>
+      <div
+        v-if="latestVideos.length > 0"
+        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+      >
+        <div
+          v-for="video in latestVideos"
+          :key="video.id"
+          class="bg-white rounded-lg shadow-md overflow-hidden transform hover:-translate-y-1 hover:shadow-xl transition-all duration-300"
+        >
+          <router-link :to="{ name: 'video-detail', params: { id: video.id } }">
+            <img
+              :src="video.thumbnail"
+              :alt="video.title"
+              class="w-full h-40 object-cover"
+            />
+          </router-link>
+          <div class="p-4">
+            <h3
+              class="text-md font-semibold text-gray-900 truncate"
+              :title="video.title"
+            >
+              {{ video.title }}
+            </h3>
+            <p class="text-sm text-gray-600 mt-1">
+              {{ video.uploader_username }}
+            </p>
+          </div>
+        </div>
+      </div>
+      <div v-else class="text-center text-gray-500 py-10 bg-gray-50 rounded-lg">
+        <p>아직 업로드된 동영상이 없습니다.</p>
+      </div>
+    </div>
+
+    <div>
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-3xl font-bold text-gray-800">최신 게시글</h2>
+        <router-link to="/board" class="text-blue-500 hover:underline"
+          >더보기 &rarr;</router-link
+        >
+      </div>
+      <div v-if="latestPosts.length > 0" class="space-y-4">
+        <div
+          v-for="post in latestPosts"
+          :key="post.id"
+          class="bg-white rounded-lg shadow-sm p-4 hover:bg-gray-50 hover:shadow-md transition-all duration-200 cursor-pointer"
+        >
+          <h3 class="text-lg font-semibold text-gray-800">{{ post.title }}</h3>
+          <p class="text-sm text-gray-500 mt-1">
+            작성자: {{ post.author_username }}
+          </p>
+        </div>
+      </div>
+      <div v-else class="text-center text-gray-500 py-10 bg-gray-50 rounded-lg">
+        <p>아직 작성된 게시글이 없습니다.</p>
+      </div>
+    </div>
   </div>
 </template>
 
-<script>
-// @ is an alias to /src
-import HelloWorld from "@/components/HelloWorld.vue";
+<script setup>
+import { ref, onMounted } from "vue";
+import api from "@/api";
 
-export default {
-  name: "HomeView",
-  components: {
-    HelloWorld,
-  },
-};
+const latestVideos = ref([]);
+const latestPosts = ref([]);
+
+onMounted(async () => {
+  try {
+    // 두 API 요청을 동시에 보냅니다.
+    const [videosResponse, postsResponse] = await Promise.all([
+      api.getVideos(),
+      api.getPosts(),
+    ]);
+
+    // 비디오 목록은 최신순으로 정렬하여 4개만 잘라옵니다.
+    latestVideos.value = videosResponse.data
+      .sort((a, b) => b.id - a.id)
+      .slice(0, 4);
+
+    // 게시글 목록도 최신순으로 정렬하여 5개만 잘라옵니다.
+    latestPosts.value = postsResponse.data
+      .sort((a, b) => b.id - a.id)
+      .slice(0, 5);
+  } catch (error) {
+    console.error("메인 페이지 데이터 로딩 실패:", error);
+  }
+});
 </script>
+
+<style scoped>
+/* Tailwind CSS가 모든 스타일을 처리하므로, 추가 스타일이 필요 없습니다. */
+</style>

@@ -5,12 +5,7 @@
       업로더: {{ video.uploader_username }} | 게시일:
       {{ new Date(video.created_at).toLocaleDateString() }}
     </p>
-    <video
-      :src="video.video_file"
-      controls
-      autoplay
-      class="video-player"
-    ></video>
+    <video :src="video.video_file" controls class="video-player"></video>
     <div class="actions">
       <button @click="pressLike" :class="{ liked: video.is_liked }">
         👍 좋아요 ({{ video.like_count }})
