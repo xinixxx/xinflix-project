@@ -1,27 +1,31 @@
 <template>
   <div
-    class="container mx-auto my-12 p-8 bg-white rounded-lg shadow-lg max-w-3xl"
+    class="container mx-auto my-12 p-8 bg-white dark:bg-gray-800 rounded-lg shadow-lg max-w-3xl"
   >
-    <h1 class="text-4xl font-bold text-center mb-8 text-gray-800">
+    <h1
+      class="text-4xl font-bold text-center mb-8 text-gray-800 dark:text-gray-100"
+    >
       자유 게시판
     </h1>
 
     <div v-if="authStore.isLoggedIn" class="mb-10">
-      <h3 class="text-2xl font-semibold mb-4 text-gray-700">새 글 작성</h3>
+      <h3 class="text-2xl font-semibold mb-4 text-gray-700 dark:text-gray-300">
+        새 글 작성
+      </h3>
       <form @submit.prevent="submitPost" class="space-y-4">
         <input
           type="text"
           v-model="newPost.title"
           placeholder="제목을 입력하세요"
           required
-          class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          class="w-full px-4 py-2 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <textarea
           v-model="newPost.content"
           placeholder="내용을 입력하세요"
           required
           rows="5"
-          class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          class="w-full px-4 py-2 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
         ></textarea>
         <button
           type="submit"
@@ -32,26 +36,32 @@
       </form>
     </div>
 
-    <hr class="my-10 border-t border-gray-200" />
+    <hr class="my-10 border-t border-gray-200 dark:border-gray-700" />
 
     <div class="post-list">
-      <h2 class="text-3xl font-bold mb-6 text-gray-800">게시글 목록</h2>
+      <h2 class="text-3xl font-bold mb-6 text-gray-800 dark:text-gray-100">
+        게시글 목록
+      </h2>
       <ul class="space-y-6">
         <li
           v-for="post in posts"
           :key="post.id"
-          class="bg-gray-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300"
+          class="bg-gray-50 dark:bg-gray-700 p-6 rounded-lg shadow-sm hover:shadow-md dark:hover:bg-gray-600 transition-all duration-300"
         >
-          <h3 class="text-2xl font-semibold text-gray-900 mb-2">
+          <h3
+            class="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2"
+          >
             {{ post.title }}
           </h3>
-          <p class="text-sm text-gray-500 mb-4">
+          <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
             작성자:
-            <span class="font-medium text-gray-700">{{
+            <span class="font-medium text-gray-700 dark:text-gray-300">{{
               post.author_username
             }}</span>
           </p>
-          <p class="text-gray-700 leading-relaxed">{{ post.content }}</p>
+          <p class="text-gray-700 dark:text-gray-300 leading-relaxed">
+            {{ post.content }}
+          </p>
         </li>
       </ul>
     </div>
@@ -59,6 +69,7 @@
 </template>
 
 <script setup>
+// <script setup> 부분은 수정할 내용이 없습니다.
 import { ref, reactive, onMounted } from "vue";
 import api from "@/api";
 import { useAuthStore } from "@/store/auth";
@@ -70,7 +81,6 @@ const newPost = reactive({
   content: "",
 });
 
-// 모든 게시글을 불러오는 함수
 const fetchPosts = async () => {
   try {
     const response = await api.getPosts();
@@ -80,22 +90,24 @@ const fetchPosts = async () => {
   }
 };
 
-// 새 게시글을 작성하는 함수
 const submitPost = async () => {
   try {
     await api.createPost(newPost);
     alert("게시글이 성공적으로 작성되었습니다.");
-    newPost.title = ""; // 폼 초기화
-    newPost.content = ""; // 폼 초기화
-    fetchPosts(); // 게시글 목록 새로고침
+    newPost.title = "";
+    newPost.content = "";
+    fetchPosts();
   } catch (error) {
     console.error("게시글 작성에 실패했습니다.", error);
     alert("글 작성은 로그인한 사용자만 가능합니다.");
   }
 };
 
-// 컴포넌트가 마운트될 때 게시글 목록을 불러옵니다.
 onMounted(() => {
   fetchPosts();
 });
 </script>
+
+<style scoped>
+/* Tailwind CSS가 모든 스타일을 처리하므로 비워둡니다. */
+</style>
