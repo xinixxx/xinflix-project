@@ -1,4 +1,5 @@
 from rest_framework import viewsets, status
+from rest_framework.decorators import action
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
@@ -16,6 +17,26 @@ class VideoViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         # 게시판에서 했던 것처럼, 현재 로그인한 사용자를 uploader로 자동 설정
         serializer.save(uploader=self.request.user)
+    
+    @action(detail=True, methods=['get'])
+    def related(self, request, pk=None):
+
+        """
+        특정 동영상과 관련된 동영상 목록을 반환합니다.
+        (현재 단순히 현재 동영상을 제외한 나머지 동영상 5개를 반환)
+        """
+        # 현재 보고있는 동영상 객체를 가져옵니다
+        current_video = self.get_object()
+
+        # 현재 동영상을 제외(execlude) 한 나머지 동영삳을을 최신순으로 정렬하고, 최대 5개까지만 가져온다
+        related_videos = Video.objects.exclude(pk=current_video.pk).order_by('-created_at')[:5]
+
+        # 가져온 동영상 목록을 직렬화(serialize) 합니다
+        # many=True 는 여러개의 객체를 직력화 할 때 필요합니다
+        serializer = self.get_serializer(related_videos, many=True)
+
+        return Response(serializer.data)
+
 
 class LikeToggleView(APIView):
     # '좋아요' 기능은 반드시 로그인한 사용자만 이용할 수 있도록 설정

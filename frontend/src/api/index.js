@@ -47,6 +47,9 @@ export default {
   getVideoDetail(id) {
     return apiClient.get(`videos/${id}/`);
   },
+  getRelatedVideos(videoId) {
+    return apiClient.get(`videos/${videoId}/related/`);
+  },
   uploadVideo(formData) {
     return apiClient.post("videos/", formData, {
       headers: {
