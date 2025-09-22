@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.urls import reverse # day 16 추가
 from .models import Video, Like
 
 class VideoSerializer(serializers.ModelSerializer):
@@ -9,6 +10,8 @@ class VideoSerializer(serializers.ModelSerializer):
     like_count = serializers.SerializerMethodField()
     # 현재 요청을 보낸 사용자가 좋아요를 눌렀는지 여부를 보내줄 필드
     is_liked = serializers.SerializerMethodField()
+    # 스트리밍 URL 을 위한 필드를 추가
+    stream_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Video
@@ -17,6 +20,7 @@ class VideoSerializer(serializers.ModelSerializer):
             'id',
             'title',
             'description',
+            'stream_url',
             'video_file',
             'thumbnail',
             'uploader_username',
@@ -38,6 +42,13 @@ class VideoSerializer(serializers.ModelSerializer):
             # 사용자가 로그인 한 경우, 현재 비디오(obj)에 대해 해당 사용자가 누른 '좋아요' 가 있는지 확인
             return Like.objects.filter(video=obj, user=user).exists()
         return False
+    
+    # stream_url 필드의 값을 만들어주는 메서드
+    def get_stream_url(self, obj):
+        request = self.context.get('request')
+        # 'video-stream' 이라는 이름의 URL 패턴을 찾아서 전체 URL을 생성합니다
+        # obj.pk는 현재 비디오의 id
+        return request.build_absolute_uri(reverse('video-stream', kwargs={'pk': obj.pk}))
     
 class LikeSerializer(serializers.ModelSerializer):
     class Meta:

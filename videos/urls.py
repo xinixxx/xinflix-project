@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework_nested import routers
-from .views import VideoViewSet, LikeToggleView
+from .views import VideoViewSet, LikeToggleView, stream_video
 # community 앱의 CommentViewSet을 여기서 import 해야 합니다.
 from community.views import CommentViewSet
 
@@ -17,4 +17,5 @@ urlpatterns = [
     path('', include(router.urls)),
     path('', include(comments_router.urls)),
     path('videos/<int:video_pk>/like/', LikeToggleView.as_view(), name='like-toggle'),
+    path('stream/<int:pk>/', stream_video, name='video-stream'),
 ]

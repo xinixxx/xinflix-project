@@ -4,7 +4,7 @@
       <div class="lg:col-span-2">
         <div class="bg-black rounded-lg shadow-lg overflow-hidden mb-6">
           <video
-            :src="video.video_file"
+            :src="video.stream_url"
             controls
             autoplay
             class="w-full"

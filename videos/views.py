@@ -7,6 +7,11 @@ from rest_framework.parsers import MultiPartParser, FormParser # 파일 파서 i
 from .models import Video, Like
 from .serializers import VideoSerializer, LikeSerializer
 
+from django.http import FileResponse, HttpResponse, Http404
+import os
+import re
+
+
 class VideoViewSet(viewsets.ModelViewSet):
     queryset = Video.objects.all()
     serializer_class = VideoSerializer
@@ -61,3 +66,50 @@ class LikeToggleView(APIView):
             # 이미 존재했다면 '좋아요'를 취소하기 위해 객체를 삭제합니다.
             like_obj.delete()
             return Response({'status': 'unliked'}, status=status.HTTP_204_NO_CONTENT)
+        
+# 파일 크기를 쪼갤 단위 (예: 1MB)
+CHUNK_SIZE = 1024 * 1024
+
+def stream_video(request, pk):
+    try:
+        video = Video.objects.get(pk=pk)
+    except Video.DoesNotExist:
+        raise Http404
+    
+    # 동영상 파일의 정보를 가져옵니다.
+    video_path = video.video_file.path
+    file_size = os.path.getsize(video_path)
+
+    # 요청 헤더에서 Range 정보를 읽어온다
+    range_header = request.headers.get('range')
+    if not range_header:
+        # Range 헤더가 없으면, 파일 전체를 일반적인 방식으로 응답합니다.
+        return FileResponse(open(video_path, 'rb'), content_type='video/mp4')
+
+    # Range 헤더 파싱: "bytes=start-end"
+    range_match = re.search(r'bytes=(\d+)-(\d*)', range_header)
+    if not range_match:
+        return HttpResponse("유효하지 않은 레인지 헤더입니다", status=400)
+    
+    start_byte, end_byte = range_match.groups()
+    start_byte = int(start_byte)
+
+    if end_byte:
+        end_byte = int(end_byte)
+    else:
+        # 끝 바이트가 명시되지 않았다면 파일의 끌까지를 의미함
+        end_byte = file_size - 1
+    
+    # 브라우저가 요청한 청크 크기만큼만 파일을 읽습니다.
+    content_length = end_byte - start_byte + 1
+
+    response = HttpResponse(status=206) # 206 Partial Content 상태 코드
+    response['Content-Type'] = 'video/mp4'
+    response['Content-Length'] = str(content_length)
+    response['Accept-Ranges'] = 'bytes'
+    response['Content-Range'] = f'bytes {start_byte}-{end_byte}/{file_size}'
+
+    # FileResponse 를 사용하여 파일을 스트리밍합니다
+    response.content = open(video_path, 'rb').read()[start_byte:end_byte+1]
+
+    return response
