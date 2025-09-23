@@ -1,44 +1,38 @@
-"""
-URL configuration for backend project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/5.2/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
 from django.contrib import admin
-from django.urls import path, include #include 를 import 해야 users와 같은 앱에서 url 호출 가능
-
-# simplejwt 관련 View 들을 import
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-    TokenRefreshView,
-)
-
-# video 백엔드 관련 import
+from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework.routers import DefaultRouter
+from rest_framework_nested import routers
+from users.views import SignupView
+from community.views import PostViewSet, CommentViewSet
+from videos.views import (
+    VideoViewSet, 
+    LikeToggleView, 
+    stream_video, 
+    IncrementViewCountView, 
+    WeeklyPopularVideosView
+)
 
+router = DefaultRouter()
+router.register(r'posts', PostViewSet, basename='post')
+router.register(r'videos', VideoViewSet, basename='video')
+
+videos_router = routers.NestedDefaultRouter(router, r'videos', lookup='video')
+videos_router.register(r'comments', CommentViewSet, basename='video-comments')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('users.urls')),
-    path('api/', include('community.urls')),
-    path('api/', include('videos.urls')),
-
-    # simplejwt 관련
-    # 1. 로그인 (Access Token, Refresh Token 발급)
+    path('api/videos/weekly-popular/', WeeklyPopularVideosView.as_view(), name='weekly-popular'),
+    path('api/videos/<int:video_pk>/like/', LikeToggleView.as_view(), name='like-toggle'),
+    path('api/videos/<int:video_pk>/view/', IncrementViewCountView.as_view(), name='increment-view-count'),
+    path('api/', include(router.urls)),
+    path('api/', include(videos_router.urls)),
+    path('api/signup/', SignupView.as_view(), name='signup'),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-
+    path('stream/<int:pk>/', stream_video, name='video-stream'),
 ]
 
 if settings.DEBUG:

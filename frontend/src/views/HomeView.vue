@@ -12,6 +12,52 @@
     </div>
 
     <div class="mb-12">
+      <h2 class="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-6">
+        주간 인기 영상 🔥
+      </h2>
+      <div
+        v-if="weeklyPopularVideos.length > 0"
+        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+      >
+        <div
+          v-for="video in weeklyPopularVideos"
+          :key="video.id"
+          class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transform hover:-translate-y-1 hover:shadow-xl transition-all duration-300"
+        >
+          <router-link :to="{ name: 'video-detail', params: { id: video.id } }">
+            <img
+              :src="video.thumbnail"
+              :alt="video.title"
+              class="w-full h-40 object-cover"
+            />
+          </router-link>
+          <div class="p-4">
+            <h3
+              class="text-md font-semibold text-gray-900 dark:text-gray-200 truncate"
+              :title="video.title"
+            >
+              {{ video.title }}
+              <span
+                class="text-sm font-normal text-blue-500 dark:text-blue-400"
+              >
+                (조회수: {{ video.view_count }})
+              </span>
+            </h3>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              {{ video.uploader_username }}
+            </p>
+          </div>
+        </div>
+      </div>
+      <div
+        v-else
+        class="text-center text-gray-500 dark:text-gray-400 py-10 bg-gray-50 dark:bg-gray-800 rounded-lg"
+      >
+        <p>아직 주간 인기 영상이 없습니다.</p>
+      </div>
+    </div>
+
+    <div class="mb-12">
       <div class="flex justify-between items-center mb-6">
         <h2 class="text-3xl font-bold text-gray-800 dark:text-gray-100">
           최신 동영상
@@ -100,13 +146,15 @@ import api from "@/api";
 
 const latestVideos = ref([]);
 const latestPosts = ref([]);
+const weeklyPopularVideos = ref([]);
 
 onMounted(async () => {
   try {
-    // 두 API 요청을 동시에 보냅니다.
-    const [videosResponse, postsResponse] = await Promise.all([
+    // 세 가지 API 요청을 동시에 보냅니다.
+    const [videosResponse, postsResponse, popularResponse] = await Promise.all([
       api.getVideos(),
       api.getPosts(),
+      api.getWeeklyPopularVideos(),
     ]);
 
     // 비디오 목록은 최신순으로 정렬하여 4개만 잘라옵니다.
@@ -118,12 +166,10 @@ onMounted(async () => {
     latestPosts.value = postsResponse.data
       .sort((a, b) => b.id - a.id)
       .slice(0, 5);
+
+    weeklyPopularVideos.value = popularResponse.data;
   } catch (error) {
     console.error("메인 페이지 데이터 로딩 실패:", error);
   }
 });
 </script>
-
-<style scoped>
-/* Tailwind CSS가 모든 스타일을 처리하므로, 추가 스타일이 필요 없습니다. */
-</style>

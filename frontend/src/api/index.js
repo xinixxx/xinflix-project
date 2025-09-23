@@ -70,4 +70,14 @@ export default {
   toggleLike(videoId) {
     return apiClient.post(`videos/${videoId}/like/`);
   },
+
+  // 주간 인기 동영상 API
+  getWeeklyPopularVideos() {
+    return apiClient.get("videos/weekly-popular/");
+  },
+
+  // 조회수 증가 API 함수
+  incrementViewCount(videoId) {
+    return apiClient.post(`videos/${videoId}/view/`);
+  },
 };

@@ -27,6 +27,7 @@ class VideoSerializer(serializers.ModelSerializer):
             'created_at',
             'like_count',
             'is_liked',
+            'view_count',
         ]
         # uploader 는 직접 입력받는 것이 아니라, 로그인한 사용자 외래키 지정됨
     # SerializerMethodField('like_count')의 값을 계산하는 메서드

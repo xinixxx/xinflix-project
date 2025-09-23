@@ -8,6 +8,7 @@
             controls
             autoplay
             class="w-full"
+            @play="handlePlay"
           ></video>
         </div>
 
@@ -134,11 +135,20 @@ import { useAuthStore } from "@/store/auth";
 const route = useRoute();
 const authStore = useAuthStore();
 const video = ref(null);
+const hasBeenViewed = ref(false); // 조회수 중복 방지 플래그
 const comments = ref([]);
 const newComment = reactive({ content: "" });
 const relatedVideos = ref([]);
 // videoId를 ref로 감싸서 watch에서 변경을 감지할 수 있도록 합니다.
 const videoId = ref(route.params.id);
+
+const handlePlay = () => {
+  // 아직 조회수를 올린 적이 없고, 비디오가 준비되었다면
+  if (!hasBeenViewed.value && video.value) {
+    api.incrementViewCount(video.value.id);
+    hasBeenViewed.value = true; // 플래그를 true로 바꿔서 다시는 실행되지 않도록 함
+  }
+};
 
 // 좋아요 버튼의 클래스를 동적으로 계산
 const likeButtonClass = computed(() => {

@@ -4,12 +4,18 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.parsers import MultiPartParser, FormParser # 파일 파서 import
-from .models import Video, Like
+from .models import Video, Like, ViewCount
 from .serializers import VideoSerializer, LikeSerializer
 
 from django.http import FileResponse, HttpResponse, Http404
 import os
 import re
+
+from django.utils import timezone
+from datetime import timedelta
+from django.db import models
+from django.db.models import Count, F
+from rest_framework.generics import ListAPIView
 
 
 class VideoViewSet(viewsets.ModelViewSet):
@@ -66,7 +72,36 @@ class LikeToggleView(APIView):
             # 이미 존재했다면 '좋아요'를 취소하기 위해 객체를 삭제합니다.
             like_obj.delete()
             return Response({'status': 'unliked'}, status=status.HTTP_204_NO_CONTENT)
+
+class IncrementViewCountView(APIView):
+    def post(self, request, video_pk):
+        try:
+            video = Video.objects.get(pk=video_pk)
+        except Video.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
         
+        # 언제 조회되었는지 기록
+        ViewCount.objects.create(video=video)
+        # Video 모델의 전체 조회수 1 증가(F() 표현식으로 동시성 문제 방지)
+        Video.objects.filter(pk=video_pk).update(view_count=F('view_count')+1)
+        return Response(status=status.HTTP_200_OK)
+
+class WeeklyPopularVideosView(APIView):
+    # 이 View는 인증이 필요 없으므로 permission_classes를 설정하지 않습니다.
+    def get(self, request):
+        seven_days_ago = timezone.now() - timedelta(days=7)
+        
+        queryset = Video.objects.annotate(
+            weekly_views=Count('view_counts', filter=models.Q(view_counts__viewed_at__gte=seven_days_ago))
+        ).order_by('-weekly_views')[:4]
+        
+        # queryset을 직접 직렬화(serialize)하여 반환합니다.
+        # context={'request': request}는 SerializerMethodField에서 request 객체를 사용하기 위해 필요합니다.
+        serializer = VideoSerializer(queryset, many=True, context={'request': request})
+        
+        return Response(serializer.data)
+
+
 # 파일 크기를 쪼갤 단위 (예: 1MB)
 CHUNK_SIZE = 1024 * 1024
 
