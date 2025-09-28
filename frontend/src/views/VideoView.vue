@@ -1,5 +1,17 @@
 <template>
-  <div class="container mx-auto my-12 px-4">
+  <div
+    v-if="isLoading"
+    class="flex justify-center items-center"
+    style="height: 80vh"
+  >
+    <BaseSpinner />
+  </div>
+
+  <div v-else-if="error" class="text-center py-20">
+    <p class="text-red-500">{{ error }}</p>
+  </div>
+
+  <div v-else class="container mx-auto my-12 px-4">
     <h1
       class="text-4xl font-bold text-center mb-10 text-gray-800 dark:text-gray-100"
     >
@@ -82,30 +94,7 @@
         v-if="videos.length > 0"
         class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
       >
-        <div
-          v-for="video in videos"
-          :key="video.id"
-          class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transform hover:-translate-y-1 hover:shadow-xl transition-all duration-300"
-        >
-          <router-link :to="{ name: 'video-detail', params: { id: video.id } }">
-            <img
-              :src="video.thumbnail"
-              :alt="video.title"
-              class="w-full h-48 object-cover"
-            />
-          </router-link>
-          <div class="p-4">
-            <h3
-              class="text-lg font-semibold text-gray-900 dark:text-gray-200 truncate"
-              :title="video.title"
-            >
-              {{ video.title }}
-            </h3>
-            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-              {{ video.uploader_username }}
-            </p>
-          </div>
-        </div>
+        <VideoCard v-for="video in videos" :key="video.id" :video="video" />
       </div>
       <div
         v-else
@@ -118,10 +107,11 @@
 </template>
 
 <script setup>
-// <script setup> 내용은 수정할 필요가 없습니다.
 import { ref, reactive, onMounted } from "vue";
 import api from "@/api";
 import { useAuthStore } from "@/store/auth";
+import VideoCard from "@/components/VideoCard.vue";
+import BaseSpinner from "@/components/BaseSpinner.vue"; // Spinner import
 
 const authStore = useAuthStore();
 const videos = ref([]);
@@ -132,12 +122,20 @@ const newVideo = reactive({
   video_file: null,
 });
 
+const isLoading = ref(true); // 로딩 상태 변수
+const error = ref(null); // 에러 상태 변수
+
 const fetchVideos = async () => {
   try {
+    isLoading.value = true;
+    error.value = null;
     const response = await api.getVideos();
     videos.value = response.data;
-  } catch (error) {
-    console.error("동영상 목록 로딩 실패:", error);
+  } catch (err) {
+    error.value = "동영상 목록을 불러오는데 실패했습니다.";
+    console.error("동영상 목록 로딩 실패:", err);
+  } finally {
+    isLoading.value = false;
   }
 };
 
@@ -181,7 +179,3 @@ const submitVideo = async () => {
 
 onMounted(fetchVideos);
 </script>
-
-<style scoped>
-/* Tailwind CSS가 모든 스타일을 처리하므로 비워둡니다. */
-</style>

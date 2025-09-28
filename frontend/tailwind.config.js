@@ -4,6 +4,15 @@ module.exports = {
   presets: [],
   darkMode: "class", // or 'class'
   theme: {
+    extend: {
+      colors: {
+        primary: "#4F46E5",
+        "primary-hover": "#4338CA",
+        secondary: "#10B981",
+        "dark-card": "#1F2937",
+        "dark-bg": "#111827",
+      },
+    },
     accentColor: ({ theme }) => ({
       ...theme("colors"),
       auto: "auto",

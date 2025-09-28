@@ -1,5 +1,18 @@
 <template>
   <div
+    v-if="isLoading"
+    class="flex justify-center items-center"
+    style="height: 80vh"
+  >
+    <BaseSpinner />
+  </div>
+
+  <div v-else-if="error" class="text-center py-20">
+    <p class="text-red-500">{{ error }}</p>
+  </div>
+
+  <div
+    v-else
     class="container mx-auto my-12 p-8 bg-white dark:bg-gray-800 rounded-lg shadow-lg max-w-3xl"
   >
     <h1
@@ -69,10 +82,10 @@
 </template>
 
 <script setup>
-// <script setup> 부분은 수정할 내용이 없습니다.
 import { ref, reactive, onMounted } from "vue";
 import api from "@/api";
 import { useAuthStore } from "@/store/auth";
+import BaseSpinner from "@/components/BaseSpinner.vue";
 
 const authStore = useAuthStore();
 const posts = ref([]);
@@ -81,12 +94,20 @@ const newPost = reactive({
   content: "",
 });
 
+const isLoading = ref(true);
+const error = ref(null);
+
 const fetchPosts = async () => {
   try {
+    isLoading.value = true;
+    error.value = null;
     const response = await api.getPosts();
     posts.value = response.data;
-  } catch (error) {
-    console.error("게시글 목록을 불러오는데 실패했습니다.", error);
+  } catch (err) {
+    error.value = "게시글 목록을 불러오는데 실패했습니다.";
+    console.error(err);
+  } finally {
+    isLoading.value = false;
   }
 };
 
@@ -107,7 +128,3 @@ onMounted(() => {
   fetchPosts();
 });
 </script>
-
-<style scoped>
-/* Tailwind CSS가 모든 스타일을 처리하므로 비워둡니다. */
-</style>

@@ -1,6 +1,18 @@
 <template>
-  <div class="container mx-auto my-12 px-4 pb-12">
-    <div v-if="video" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+  <div
+    v-if="isLoading"
+    class="flex justify-center items-center"
+    style="height: 80vh"
+  >
+    <BaseSpinner />
+  </div>
+
+  <div v-else-if="error" class="text-center py-20">
+    <p class="text-red-500">{{ error }}</p>
+  </div>
+
+  <div v-else-if="video" class="container mx-auto my-12 px-4 pb-12">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
       <div class="lg:col-span-2">
         <div class="bg-black rounded-lg shadow-lg overflow-hidden mb-6">
           <video
@@ -119,10 +131,6 @@
         </div>
       </div>
     </div>
-
-    <div v-else class="text-center text-gray-500 dark:text-gray-400 mt-20">
-      <p>동영상을 불러오는 중입니다...</p>
-    </div>
   </div>
 </template>
 
@@ -131,33 +139,26 @@ import { ref, reactive, onMounted, computed, watch } from "vue";
 import { useRoute } from "vue-router";
 import api from "@/api";
 import { useAuthStore } from "@/store/auth";
+import BaseSpinner from "@/components/BaseSpinner.vue";
 
 const route = useRoute();
 const authStore = useAuthStore();
 const video = ref(null);
-const hasBeenViewed = ref(false); // 조회수 중복 방지 플래그
 const comments = ref([]);
 const newComment = reactive({ content: "" });
 const relatedVideos = ref([]);
-// videoId를 ref로 감싸서 watch에서 변경을 감지할 수 있도록 합니다.
 const videoId = ref(route.params.id);
 
-const handlePlay = () => {
-  // 아직 조회수를 올린 적이 없고, 비디오가 준비되었다면
-  if (!hasBeenViewed.value && video.value) {
-    api.incrementViewCount(video.value.id);
-    hasBeenViewed.value = true; // 플래그를 true로 바꿔서 다시는 실행되지 않도록 함
-  }
-};
+const isLoading = ref(true);
+const error = ref(null);
+const hasBeenViewed = ref(false);
 
-// 좋아요 버튼의 클래스를 동적으로 계산
 const likeButtonClass = computed(() => {
   return video.value?.is_liked
     ? "bg-blue-100 text-blue-600 border border-blue-300 dark:bg-blue-900 dark:text-blue-200 dark:border-blue-700"
     : "bg-gray-100 text-gray-600 border border-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600";
 });
 
-// 댓글 목록만 불러오는 함수 (videoId를 인자로 받도록 수정)
 const fetchComments = async (currentVideoId) => {
   try {
     const response = await api.getComments(currentVideoId);
@@ -186,24 +187,28 @@ const pressLike = async () => {
   }
 };
 
-// 새 댓글을 작성하는 함수
 const submitComment = async () => {
   try {
     await api.createComment(videoId.value, newComment);
     newComment.content = "";
-    fetchComments(videoId.value); // 댓글 목록 새로고침
+    fetchComments(videoId.value);
   } catch (error) {
     console.error("댓글 작성에 실패했습니다.", error);
     alert("댓글 작성에 실패했습니다.");
   }
 };
 
-// 동영상 상세 정보와 관련 동영상 목록을 불러오는 통합 함수
+const handlePlay = () => {
+  if (!hasBeenViewed.value && video.value) {
+    api.incrementViewCount(video.value.id);
+    hasBeenViewed.value = true;
+  }
+};
+
 const fetchData = async (id) => {
   try {
-    video.value = null; // 화면을 로딩 상태로 먼저 변경
-    comments.value = [];
-    relatedVideos.value = [];
+    isLoading.value = true;
+    error.value = null;
 
     const [videoResponse, relatedVideosResponse] = await Promise.all([
       api.getVideoDetail(id),
@@ -212,19 +217,19 @@ const fetchData = async (id) => {
 
     video.value = videoResponse.data;
     relatedVideos.value = relatedVideosResponse.data;
-    fetchComments(id); // 댓글도 함께 불러오기
-  } catch (error) {
-    console.error("데이터를 불러오는데 실패했습니다.", error);
+    fetchComments(id);
+  } catch (err) {
+    error.value = "데이터를 불러오는데 실패했습니다.";
+    console.error(err);
+  } finally {
+    isLoading.value = false;
   }
 };
 
-// 컴포넌트가 처음 마운트될 때 데이터를 불러옵니다. (이것 하나만 남깁니다)
 onMounted(() => {
   fetchData(videoId.value);
 });
 
-// 주소 변경 감지: 사용자가 관련 동영상을 클릭하여 페이지가 바뀌면,
-// 새로운 ID로 데이터를 다시 불러옵니다.
 watch(
   () => route.params.id,
   (newId) => {

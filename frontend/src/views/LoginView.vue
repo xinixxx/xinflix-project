@@ -83,8 +83,7 @@ const submitForm = async () => {
     router.push("/"); // 로그인 성공 시 메인 페이지로 이동
   } catch (error) {
     console.error("로그인 실패:", error);
-    errorMessage.value =
-      "로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.";
+    errorMessage.value = "아이디와 비밀번호를 확인해주세요.";
   }
 };
 </script>
