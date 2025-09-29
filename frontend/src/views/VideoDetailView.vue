@@ -14,17 +14,34 @@
   <div v-else-if="video" class="container mx-auto my-12 px-4 pb-12">
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
       <div class="lg:col-span-2">
-        <div class="bg-black rounded-lg shadow-lg overflow-hidden mb-6">
+        <div data-vjs-player>
           <video
-            :src="video.stream_url"
-            controls
-            autoplay
-            class="w-full"
-            @play="handlePlay"
+            ref="videoPlayer"
+            class="video-js vjs-big-play-centered w-full rounded-lg shadow-lg"
           ></video>
         </div>
+        <div class="quality-selector mt-4">
+          <label
+            for="quality-select"
+            class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+            >화질 선택:</label
+          >
+          <select
+            id="quality-select"
+            @change="changeQuality"
+            class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+          >
+            <option
+              v-for="source in sortedSources"
+              :key="source.label"
+              :value="source.src"
+            >
+              {{ source.label }}
+            </option>
+          </select>
+        </div>
 
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mt-6">
           <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
             {{ video.title }}
           </h1>
@@ -135,11 +152,21 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed, watch } from "vue";
+import {
+  ref,
+  reactive,
+  onMounted,
+  onBeforeUnmount,
+  computed,
+  watch,
+  nextTick,
+} from "vue";
 import { useRoute } from "vue-router";
 import api from "@/api";
 import { useAuthStore } from "@/store/auth";
 import BaseSpinner from "@/components/BaseSpinner.vue";
+import videojs from "video.js";
+import "video.js/dist/video-js.css";
 
 const route = useRoute();
 const authStore = useAuthStore();
@@ -153,11 +180,34 @@ const isLoading = ref(true);
 const error = ref(null);
 const hasBeenViewed = ref(false);
 
+const videoPlayer = ref(null);
+let player = null;
+
 const likeButtonClass = computed(() => {
   return video.value?.is_liked
     ? "bg-blue-100 text-blue-600 border border-blue-300 dark:bg-blue-900 dark:text-blue-200 dark:border-blue-700"
     : "bg-gray-100 text-gray-600 border border-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600";
 });
+
+const sortedSources = computed(() => {
+  if (!video.value || !video.value.files) return [];
+  return video.value.files
+    .map((file) => ({
+      src: file.file,
+      type: "video/mp4",
+      label: file.resolution,
+      res: parseInt(file.resolution),
+    }))
+    .sort((a, b) => parseInt(a.label) - parseInt(b.label)); // Sort ascending for display
+});
+
+const changeQuality = (event) => {
+  const selectedSrc = event.target.value;
+  if (player && selectedSrc) {
+    player.src({ src: selectedSrc, type: "video/mp4" });
+    player.play();
+  }
+};
 
 const fetchComments = async (currentVideoId) => {
   try {
@@ -205,6 +255,69 @@ const handlePlay = () => {
   }
 };
 
+const initializePlayer = (videoData) => {
+  if (player) {
+    player.dispose();
+  }
+  // nextTick을 사용해 DOM이 업데이트된 후 플레이어를 초기화합니다.
+  nextTick(() => {
+    const options = {
+      autoplay: true,
+      controls: true,
+      responsive: true,
+      fluid: true,
+      poster: videoData.thumbnail,
+      controlBar: {
+        children: [
+          "playToggle",
+          "volumePanel",
+          "currentTimeDisplay",
+          "timeDivider",
+          "durationDisplay",
+          "progressControl",
+          "liveDisplay",
+          "remainingTimeDisplay",
+          "customControlSpacer",
+          "playbackRateMenuButton",
+          "chaptersButton",
+          "descriptionsButton",
+          "subtitlesButton",
+          "captionsButton",
+          "audioTrackButton",
+          "fullscreenToggle",
+        ],
+      },
+    };
+    const sources = videoData.files
+      .map((file) => ({
+        src: file.file,
+        type: "video/mp4",
+        label: file.resolution,
+        res: parseInt(file.resolution), // Add res property
+      }))
+      .sort((a, b) => parseInt(b.label) - parseInt(a.label));
+
+    if (videoPlayer.value) {
+      player = videojs(videoPlayer.value, options, () => {
+        console.log("Player is ready");
+        player.src(sources);
+        player.on("play", handlePlay);
+
+        // Set the default selected quality in the dropdown to match the playing video
+        // The 'sources' array is sorted descending, so the first element is the highest quality
+        if (sources.length > 0) {
+          const highestQualitySrc = sources[0].src;
+          const qualitySelectElement =
+            document.getElementById("quality-select");
+          if (qualitySelectElement) {
+            qualitySelectElement.value = highestQualitySrc;
+          }
+        }
+      });
+    }
+  });
+};
+
 const fetchData = async (id) => {
   try {
     isLoading.value = true;
@@ -217,9 +330,10 @@ const fetchData = async (id) => {
 
     video.value = videoResponse.data;
     relatedVideos.value = relatedVideosResponse.data;
+
     fetchComments(id);
   } catch (err) {
-    error.value = "데이터를 불러오는데 실패했습니다.";
+    error.value.error = "데이터를 불러오는데 실패했습니다.";
     console.error(err);
   } finally {
     isLoading.value = false;
@@ -229,6 +343,23 @@ const fetchData = async (id) => {
 onMounted(() => {
   fetchData(videoId.value);
 });
+
+onBeforeUnmount(() => {
+  if (player) {
+    player.dispose();
+  }
+});
+
+watch(
+  () => video.value,
+  (newVideo) => {
+    if (newVideo) {
+      nextTick(() => {
+        initializePlayer(newVideo);
+      });
+    }
+  }
+);
 
 watch(
   () => route.params.id,

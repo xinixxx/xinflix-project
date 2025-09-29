@@ -17,6 +17,9 @@ from django.db import models
 from django.db.models import Count, F
 from rest_framework.generics import ListAPIView
 
+from .tasks import transcode_video
+
+
 
 class VideoViewSet(viewsets.ModelViewSet):
     queryset = Video.objects.all()
@@ -25,9 +28,15 @@ class VideoViewSet(viewsets.ModelViewSet):
     # parser_classes 설정: MultiPartParser 와 FormParser 를 추가하여 동영상, 이미지같은 multi-part form data 를 처리할 수 있도록 함
     parser_classes = [MultiPartParser, FormParser]
 
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context.update({"request": self.request})
+        return context
+
     def perform_create(self, serializer):
         # 게시판에서 했던 것처럼, 현재 로그인한 사용자를 uploader로 자동 설정
-        serializer.save(uploader=self.request.user)
+        video = serializer.save(uploader=self.request.user)
+        transcode_video.delay(video.id)
     
     @action(detail=True, methods=['get'])
     def related(self, request, pk=None):

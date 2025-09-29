@@ -7,7 +7,7 @@ class Video(models.Model):
 
     # FileFields 는 모든 파일을 업로드 할 수 있는 필드임
     # 'uploads/videos/' 는 파일이 저장될 하위 폴더 경로
-    video_file = models.FileField(upload_to='uploads/videos/')
+    original_file = models.FileField(upload_to='uploads/originals/')
 
     # ImageField는 이미지 파일만 업로드 할 수 있는 필드
     thumbnail = models.ImageField(upload_to='uploads/thumbnails/')
@@ -20,6 +20,15 @@ class Video(models.Model):
 
     def __str__(self):
         return self.title
+
+class VideoFile(models.Model):
+    video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name='files')
+    resolution = models.CharField(max_length=10)
+    file = models.FileField(upload_to='uploads/videos/')
+
+    def __str__(self):
+        return f"{self.video.title} ({self.resolution})"
+
 
 class Like(models.Model):
     # 좋아요를 누른 사용자

@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@silvermine/videojs-quality-selector": "^1.3.1"
+  }
+}
