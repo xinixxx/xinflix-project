@@ -2,7 +2,7 @@ from django.db import models
 from django.conf import settings
 
 class Video(models.Model):
-    title = models.CharField(max_length=100)
+    title = models.CharField(max_length=300)
     description = models.TextField()
 
     # FileFields 는 모든 파일을 업로드 할 수 있는 필드임

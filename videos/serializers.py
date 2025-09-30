@@ -12,12 +12,15 @@ class VideoFileSerializer(serializers.ModelSerializer):
     def get_file(self, obj):
         request = self.context.get('request')
         if request is not None:
-            return request.build_absolute_uri(obj.file.url)
-        return obj.file.url
+            # 'video-stream' URL을 동적으로 생성하고, VideoFile의 pk를 전달합니다.
+            stream_url = reverse('video-stream', kwargs={'pk': obj.pk})
+            return request.build_absolute_uri(stream_url)
+        return None
 
 class VideoSerializer(serializers.ModelSerializer):
     # uploader 필드를 읽기 전용으로 설정, 그리고 업로드한 사람의 username 을 보여준다
     uploader_username = serializers.ReadOnlyField(source='uploader.username')
+    uploader = serializers.ReadOnlyField(source='uploader.id')
 
     # 좋아요 개수를 계산해서 보내줄 필드
     like_count = serializers.SerializerMethodField()
@@ -35,6 +38,7 @@ class VideoSerializer(serializers.ModelSerializer):
             'original_file',
             'thumbnail',
             'uploader_username',
+            'uploader',
             'created_at',
             'like_count',
             'is_liked',

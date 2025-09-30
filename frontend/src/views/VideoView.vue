@@ -156,7 +156,7 @@ const submitVideo = async () => {
   formData.append("title", newVideo.title);
   formData.append("description", newVideo.description);
   formData.append("thumbnail", newVideo.thumbnail);
-  formData.append("video_file", newVideo.video_file);
+  formData.append("original_file", newVideo.video_file);
 
   try {
     await api.uploadVideo(formData);

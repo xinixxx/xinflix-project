@@ -57,6 +57,9 @@ export default {
       },
     });
   },
+  deleteVideo(videoId) {
+    return apiClient.delete(`videos/${videoId}/`);
+  },
 
   // 댓글 API
   getComments(videoId) {

@@ -61,6 +61,18 @@
               <span v-if="video.is_liked">❤️</span><span v-else>🤍</span>
               <span>좋아요 ({{ video.like_count }})</span>
             </button>
+            <br />
+            <button
+              v-if="
+                authStore.isLoggedIn &&
+                authStore.user &&
+                Number(authStore.user.user_id) === video.uploader
+              "
+              @click="removeVideo"
+              class="bg-red-500 text-white px-4 py-2 rounded-full font-semibold text-sm hover:bg-red-600 transition-colors"
+            >
+              동영상 삭제
+            </button>
           </div>
           <div class="description bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
             <p
@@ -161,7 +173,7 @@ import {
   watch,
   nextTick,
 } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import api from "@/api";
 import { useAuthStore } from "@/store/auth";
 import BaseSpinner from "@/components/BaseSpinner.vue";
@@ -169,6 +181,7 @@ import videojs from "video.js";
 import "video.js/dist/video-js.css";
 
 const route = useRoute();
+const router = useRouter();
 const authStore = useAuthStore();
 const video = ref(null);
 const comments = ref([]);
@@ -234,6 +247,20 @@ const pressLike = async () => {
   } catch (error) {
     console.error("좋아요 처리에 실패했습니다.", error);
     alert("좋아요 처리에 실패했습니다.");
+  }
+};
+
+const removeVideo = async () => {
+  // 사용자에게 정말 삭제할 것인지 한번 더 확인받습니다.
+  if (confirm("정말로 이 동영상을 삭제하시겠습니까? 되돌릴 수 없습니다.")) {
+    try {
+      await api.deleteVideo(video.value.id);
+      alert("동영상이 성공적으로 삭제되었습니다.");
+      router.push("/videos");
+    } catch (error) {
+      console.error("동영상 삭제 실패:", error);
+      alert("동영상 삭제에 실패했습니다.");
+    }
   }
 };
 

@@ -4,7 +4,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.parsers import MultiPartParser, FormParser # 파일 파서 import
-from .models import Video, Like, ViewCount
+from backend.permissions import IsUploaderOrReadOnly
+from .models import Video, VideoFile, Like, ViewCount
 from .serializers import VideoSerializer, LikeSerializer
 
 from django.http import FileResponse, HttpResponse, Http404
@@ -21,10 +22,11 @@ from .tasks import transcode_video
 
 
 
+
 class VideoViewSet(viewsets.ModelViewSet):
     queryset = Video.objects.all()
     serializer_class = VideoSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsUploaderOrReadOnly]
     # parser_classes 설정: MultiPartParser 와 FormParser 를 추가하여 동영상, 이미지같은 multi-part form data 를 처리할 수 있도록 함
     parser_classes = [MultiPartParser, FormParser]
 
@@ -116,21 +118,23 @@ CHUNK_SIZE = 1024 * 1024
 
 def stream_video(request, pk):
     try:
-        video = Video.objects.get(pk=pk)
-    except Video.DoesNotExist:
+        video_file = VideoFile.objects.get(pk=pk)
+    except VideoFile.DoesNotExist:
         raise Http404
     
-    # 동영상 파일의 정보를 가져옵니다.
-    video_path = video.video_file.path
+    video_path = video_file.file.path
+    
+    import os
+    if not os.path.exists(video_path):
+        raise Http404("File does not exist.")
+
     file_size = os.path.getsize(video_path)
 
-    # 요청 헤더에서 Range 정보를 읽어온다
     range_header = request.headers.get('range')
     if not range_header:
-        # Range 헤더가 없으면, 파일 전체를 일반적인 방식으로 응답합니다.
         return FileResponse(open(video_path, 'rb'), content_type='video/mp4')
 
-    # Range 헤더 파싱: "bytes=start-end"
+    import re
     range_match = re.search(r'bytes=(\d+)-(\d*)', range_header)
     if not range_match:
         return HttpResponse("유효하지 않은 레인지 헤더입니다", status=400)
@@ -138,22 +142,24 @@ def stream_video(request, pk):
     start_byte, end_byte = range_match.groups()
     start_byte = int(start_byte)
 
+    chunk_size = 1024 * 1024 # 1MB
+
     if end_byte:
         end_byte = int(end_byte)
     else:
-        # 끝 바이트가 명시되지 않았다면 파일의 끌까지를 의미함
-        end_byte = file_size - 1
+        end_byte = start_byte + chunk_size - 1
+        if end_byte >= file_size:
+            end_byte = file_size - 1
     
-    # 브라우저가 요청한 청크 크기만큼만 파일을 읽습니다.
     content_length = end_byte - start_byte + 1
 
-    response = HttpResponse(status=206) # 206 Partial Content 상태 코드
-    response['Content-Type'] = 'video/mp4'
+    with open(video_path, 'rb') as f:
+        f.seek(start_byte)
+        chunk = f.read(content_length)
+
+    response = HttpResponse(chunk, status=206, content_type='video/mp4')
     response['Content-Length'] = str(content_length)
     response['Accept-Ranges'] = 'bytes'
     response['Content-Range'] = f'bytes {start_byte}-{end_byte}/{file_size}'
-
-    # FileResponse 를 사용하여 파일을 스트리밍합니다
-    response.content = open(video_path, 'rb').read()[start_byte:end_byte+1]
 
     return response
