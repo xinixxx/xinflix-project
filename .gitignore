@@ -16,3 +16,6 @@ db.sqlite3
 # IDE / Editor
 .vscode/
 .idea/
+
+# memo
+.memo

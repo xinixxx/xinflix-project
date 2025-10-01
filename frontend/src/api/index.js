@@ -39,6 +39,12 @@ export default {
   createPost(data) {
     return apiClient.post("posts/", data);
   },
+  updatePost(postId, data) {
+    return apiClient.put(`posts/${postId}/`, data);
+  },
+  deletePost(postId) {
+    return apiClient.delete(`posts/${postId}/`);
+  },
 
   // 동영상 API
   getVideos() {

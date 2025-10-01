@@ -6,8 +6,9 @@ import router from "./router";
 import "./assets/tailwind.css";
 
 const app = createApp(App);
-const pinia = createPinia();
-app.use(pinia);
+
+// 1. Pinia 인스턴스를 먼저 앱에 등록합니다.
+app.use(createPinia());
 app.use(router);
 
 // useAuthStore는 Pinia가 앱에 등록된 후에 호출되어야 합니다.
