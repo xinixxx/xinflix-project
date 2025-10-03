@@ -15,7 +15,7 @@ class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all().order_by('-created_at')
     serializer_class = PostSerializer
     # 이 ViewSet 에 관한 접근 관한 설정
-    permission_classes = [IsAuthorOrReadOnly]
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     # perform_create는 ModelViewSet 에서 객체를 생성할 때 호출되는 메서드
     # 이 메서드를 오버라이드하여 'author' 필드를 현재 로그인한 사용자로 자동 설정

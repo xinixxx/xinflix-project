@@ -91,12 +91,14 @@
           :key="post.id"
           class="bg-white dark:bg-dark-card rounded-lg shadow-sm p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200 cursor-pointer"
         >
-          <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">
-            {{ post.title }}
-          </h3>
-          <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            작성자: {{ post.author_username }}
-          </p>
+          <router-link :to="{ name: 'post-detail', params: { id: post.id } }">
+            <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">
+              {{ post.title }}
+            </h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              작성자: {{ post.author_username }}
+            </p>
+          </router-link>
         </div>
       </div>
       <div

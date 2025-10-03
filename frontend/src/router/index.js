@@ -11,6 +11,8 @@ import BoardView from "../views/BoardView.vue";
 import VideoView from "../views/VideoView.vue";
 // VideoDetailView 를 import
 import VideoDetailView from "../views/VideoDetailView.vue";
+// PostDetailView 를 import
+import PostDetailView from "../views/PostDetailView.vue";
 
 const routes = [
   {
@@ -55,6 +57,11 @@ const routes = [
     path: "/videos/:id",
     name: "video-detail",
     component: VideoDetailView,
+  },
+  {
+    path: "/board/:id",
+    name: "post-detail",
+    component: PostDetailView,
   },
 ];
 

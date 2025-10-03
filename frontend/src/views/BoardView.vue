@@ -59,9 +59,9 @@
         <li
           v-for="post in posts"
           :key="post.id"
-          class="bg-gray-50 dark:bg-gray-700 p-6 rounded-lg shadow-sm transition-all duration-300"
+          class="bg-gray-50 dark:bg-gray-700 p-6 rounded-lg shadow-sm transition-all duration-300 hover:shadow-md"
         >
-          <div v-if="!post.isEditing">
+          <router-link :to="`/board/${post.id}`">
             <h3
               class="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2"
             >
@@ -74,58 +74,12 @@
               }}</span>
             </p>
             <p
-              class="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap"
+              class="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap truncate"
+              style="max-height: 6rem"
             >
               {{ post.content }}
             </p>
-          </div>
-
-          <div v-else class="space-y-2">
-            <input
-              type="text"
-              v-model="post.editableTitle"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md dark:bg-gray-600 dark:border-gray-500 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <textarea
-              v-model="post.editableContent"
-              rows="5"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md dark:bg-gray-600 dark:border-gray-500 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            ></textarea>
-          </div>
-
-          <div
-            v-if="post.is_author"
-            class="mt-4 flex items-center justify-end space-x-4"
-          >
-            <template v-if="!post.isEditing">
-              <button
-                @click="startEditing(post)"
-                class="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline"
-              >
-                수정
-              </button>
-              <button
-                @click="removePost(post.id)"
-                class="text-sm font-medium text-red-600 dark:text-red-400 hover:underline"
-              >
-                삭제
-              </button>
-            </template>
-            <template v-else>
-              <button
-                @click="savePost(post)"
-                class="text-sm font-medium text-green-600 dark:text-green-400 hover:underline"
-              >
-                저장
-              </button>
-              <button
-                @click="cancelEditing(post)"
-                class="text-sm font-medium text-gray-600 dark:text-gray-400 hover:underline"
-              >
-                취소
-              </button>
-            </template>
-          </div>
+          </router-link>
         </li>
       </ul>
     </div>
@@ -159,45 +113,6 @@ const fetchPosts = async () => {
     console.error(err);
   } finally {
     isLoading.value = false;
-  }
-};
-
-const removePost = async (postId) => {
-  if (confirm("정말로 이 게시글을 삭제하시겠습니까?")) {
-    try {
-      await api.deletePost(postId);
-      alert("게시글이 삭제되었습니다.");
-      fetchPosts(); // 목록 새로고침
-    } catch (error) {
-      alert("삭제에 실패했습니다. 권한이 있는지 확인해주세요.");
-      console.error(error);
-    }
-  }
-};
-
-const startEditing = (post) => {
-  post.isEditing = true;
-};
-
-const cancelEditing = (post) => {
-  post.isEditing = false;
-  // 수정 취소 시, 원래 내용으로 되돌립니다.
-  post.editableTitle = post.title;
-  post.editableContent = post.content;
-};
-
-const savePost = async (post) => {
-  try {
-    await api.updatePost(post.id, {
-      title: post.editableTitle,
-      content: post.editableContent,
-    });
-    alert("게시글이 수정되었습니다.");
-    post.isEditing = false;
-    fetchPosts(); // 목록 새로고침
-  } catch (error) {
-    alert("수정에 실패했습니다. 권한이 있는지 확인해주세요.");
-    console.error(error);
   }
 };
 

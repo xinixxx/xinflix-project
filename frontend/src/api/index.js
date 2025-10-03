@@ -39,6 +39,9 @@ export default {
   createPost(data) {
     return apiClient.post("posts/", data);
   },
+  getPostDetail(postId) {
+    return apiClient.get(`posts/${postId}/`);
+  },
   updatePost(postId, data) {
     return apiClient.put(`posts/${postId}/`, data);
   },
