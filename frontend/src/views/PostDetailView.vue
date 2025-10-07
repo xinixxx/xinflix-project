@@ -4,96 +4,125 @@
     class="flex justify-center items-center"
     style="height: 80vh"
   >
-    <baseSpinner />
+    <BaseSpinner />
   </div>
 
   <div v-else-if="error" class="text-center py-20">
     <p class="text-red-500">{{ error }}</p>
   </div>
 
-  <div
-    v-else-if="post"
-    class="container mx-auto my-12 p-8 bg-white dark:bg-gray-800 rounded-lg shadow-lg max-w-3xl"
-  >
-    <div v-if="!isEditing">
-      <h1 class="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-        {{ post.title }}
-      </h1>
-      <p class="text-md text-gray-500 dark:text-gray-400 mb-8">
-        작성자:
-        <span class="font-medium text-gray-700 dark:text-gray-300">{{
-          post.author_username
-        }}</span>
-        | 게시일: {{ new Date(post.created_at).toLocaleDateString() }}
-      </p>
-      <div class="prose dark:prose-invert max-w-none">
-        <p
-          class="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap"
-        >
-          {{ post.content }}
+  <div v-else-if="post" class="container mx-auto my-12 px-4 pb-12">
+    <div
+      class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 max-w-3xl mx-auto"
+    >
+      <div v-if="!isEditing">
+        <h1 class="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+          {{ post.title }}
+        </h1>
+        <p class="text-md text-gray-500 dark:text-gray-400 mb-8">
+          작성자:
+          <span class="font-medium text-gray-700 dark:text-gray-300">{{
+            post.author_username
+          }}</span>
+          | 게시일: {{ new Date(post.created_at).toLocaleDateString() }}
         </p>
+        <div class="prose dark:prose-invert max-w-none">
+          <p
+            class="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap"
+          >
+            {{ post.content }}
+          </p>
+        </div>
+      </div>
+
+      <div v-else class="space-y-4">
+        <input
+          type="text"
+          v-model="editableTitle"
+          class="w-full text-4xl font-bold ..."
+        />
+        <textarea
+          v-model="editableContent"
+          rows="10"
+          class="w-full ..."
+        ></textarea>
+      </div>
+
+      <div
+        v-if="post.is_author"
+        class="mt-8 flex items-center justify-end space-x-4"
+      >
+        <template v-if="!isEditing">
+          <button @click="startEditing" class="text-sm ...">수정</button>
+          <button @click="removePost" class="text-sm ...">삭제</button>
+        </template>
+        <template v-else>
+          <button @click="savePost" class="text-sm ...">저장</button>
+          <button @click="cancelEditing" class="text-sm ...">취소</button>
+        </template>
       </div>
     </div>
 
-    <div v-else class="space-y-4">
-      <input
-        type="text"
-        v-model="editableTitle"
-        class="w-full px-4 py-2 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
-      />
-      <textarea
-        v-model="editableContent"
-        rows="10"
-        class="w-full px-4 py-2 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
-      ></textarea>
-    </div>
-
     <div
-      v-if="post.is_author"
-      class="mt-8 flex items-center justify-end space-x-4"
+      class="comments-section mt-10 bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 max-w-3xl mx-auto"
     >
-      <template v-if="!isEditing">
+      <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-6">
+        댓글 ({{ comments.length }})
+      </h2>
+      <form
+        v-if="authStore.isLoggedIn"
+        @submit.prevent="submitComment"
+        class="comment-form mb-8"
+      >
+        <textarea
+          v-model="newComment.content"
+          placeholder="댓글을 추가하세요..."
+          required
+          class="w-full px-4 py-2 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        ></textarea>
         <button
-          @click="startEditing"
-          class="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline"
+          type="submit"
+          class="mt-2 float-right bg-blue-500 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-600 transition-colors duration-200"
         >
-          수정
+          등록
         </button>
-        <button
-          @click="removePost"
-          class="text-sm font-medium text-red-600 dark:text-red-400 hover:underline"
+      </form>
+      <ul class="comment-list space-y-4">
+        <li
+          v-for="comment in comments"
+          :key="comment.id"
+          class="border-t border-gray-200 dark:border-gray-700 pt-4"
         >
-          삭제
-        </button>
-      </template>
-      <template v-else>
-        <button
-          @click="savePost"
-          class="text-sm font-medium text-green-600 dark:text-green-400 hover:underline"
-        >
-          저장
-        </button>
-        <button
-          @click="cancelEditing"
-          class="text-sm font-medium text-gray-600 dark:text-gray-400 hover:underline"
-        >
-          취소
-        </button>
-      </template>
+          <p class="font-semibold text-gray-800 dark:text-gray-200">
+            {{ comment.author_username }}
+          </p>
+          <p class="text-gray-600 dark:text-gray-300 my-1">
+            {{ comment.content }}
+          </p>
+          <span class="text-xs text-gray-500 dark:text-gray-400">{{
+            new Date(comment.created_at).toLocaleString()
+          }}</span>
+        </li>
+      </ul>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from "vue";
+import { ref, reactive, onMounted, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import api from "@/api";
+import { useAuthStore } from "@/store/auth"; // authStore import
 import BaseSpinner from "@/components/BaseSpinner.vue";
 
 const route = useRoute();
 const router = useRouter();
+const authStore = useAuthStore(); // authStore 선언
+
 const post = ref(null);
 const postId = ref(route.params.id);
+const comments = ref([]);
+const newComment = reactive({ content: "" });
 
 const isLoading = ref(true);
 const error = ref(null);
@@ -102,22 +131,45 @@ const isEditing = ref(false);
 const editableTitle = ref("");
 const editableContent = ref("");
 
+// 게시글과 댓글 데이터를 모두 불러오는 함수
 const fetchData = async (id) => {
   try {
     isLoading.value = true;
     error.value = null;
-    const response = await api.getPostDetail(id);
-    post.value = response.data;
+
+    // 게시글 상세 정보와 댓글 목록을 동시에 요청
+    const [postResponse, commentsResponse] = await Promise.all([
+      api.getPostDetail(id),
+      api.getPostComments(id),
+    ]);
+
+    post.value = postResponse.data;
+    comments.value = commentsResponse.data;
+
+    // 수정용 데이터 초기화
     editableTitle.value = post.value.title;
     editableContent.value = post.value.content;
   } catch (err) {
-    error.value = "게시글을 불러오는데 실패했습니다.";
+    error.value = "데이터를 불러오는데 실패했습니다.";
     console.error(err);
   } finally {
     isLoading.value = false;
   }
 };
 
+// 댓글 작성 함수
+const submitComment = async () => {
+  try {
+    await api.createPostComments(postId.value, newComment);
+    newComment.content = "";
+    // 댓글 작성 후 댓글 목록만 새로고침
+    const response = await api.getPostComments(postId.value);
+    comments.value = response.data;
+  } catch (error) {
+    console.error("댓글 작성에 실패했습니다.", error);
+    alert("댓글 작성에 실패했습니다.");
+  }
+};
 const removePost = async () => {
   if (confirm("정말로 이 게시글을 삭제하시겠습니까?")) {
     try {
@@ -160,7 +212,6 @@ onMounted(() => {
   fetchData(postId.value);
 });
 
-// 다른 게시글로 이동할 경우를 대비한 watch
 watch(
   () => route.params.id,
   (newId) => {

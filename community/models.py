@@ -3,6 +3,9 @@ from django.conf import settings
 # Post 모델을 import 합니다
 from videos.models import Video
 
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
+
 class Post(models.Model):
     # settings.AUTH_USER_MODEL 은 Django 가 인식하는 User 모델을 가리킨다.
     # on_delete=models.CASCADE 는 사용자가 삭제되면 그 사용자가 쓴 글도 모두 삭제된다는 의미
@@ -19,13 +22,14 @@ class Post(models.Model):
 
 # Create your models here.
 class Comment(models.Model):
-    # 어떤 동영상에 달릴 댓글인지 (Video와 관계 설정)
-    video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name='comments')
-    # 작정자 (Users 와 관계설정)
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    # 댓글 내용
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
+
+    # GenericForeignKey를 위한 필드들
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')
 
     def __str__(self):
         return f'{self.author} - {self.content[:10]}'

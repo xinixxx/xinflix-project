@@ -48,6 +48,12 @@ export default {
   deletePost(postId) {
     return apiClient.delete(`posts/${postId}/`);
   },
+  getPostComments(postId) {
+    return apiClient.get(`posts/${postId}/comments/`);
+  },
+  createPostComments(postId, data) {
+    return apiClient.post(`posts/${postId}/comments/`, data);
+  },
 
   // 동영상 API
   getVideos() {

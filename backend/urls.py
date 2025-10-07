@@ -19,6 +19,9 @@ router = DefaultRouter()
 router.register(r'posts', PostViewSet, basename='post')
 router.register(r'videos', VideoViewSet, basename='video')
 
+posts_router = routers.NestedDefaultRouter(router, r'posts', lookup='post')
+posts_router.register(r'comments', CommentViewSet, basename='post-comments')
+
 videos_router = routers.NestedDefaultRouter(router, r'videos', lookup='video')
 videos_router.register(r'comments', CommentViewSet, basename='video-comments')
 
@@ -29,6 +32,7 @@ urlpatterns = [
     path('api/videos/<int:video_pk>/view/', IncrementViewCountView.as_view(), name='increment-view-count'),
     path('api/', include(router.urls)),
     path('api/', include(videos_router.urls)),
+    path('api/', include(posts_router.urls)),
     path('api/signup/', SignupView.as_view(), name='signup'),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),

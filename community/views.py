@@ -3,6 +3,7 @@ from rest_framework import viewsets, permissions
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from .models import Post, Comment
 from .serializers import PostSerializer, CommentSerializer
+from videos.models import Video
 
 class IsAuthorOrReadOnly(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
@@ -28,16 +29,19 @@ class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
     permission_classes = [IsAuthorOrReadOnly]
 
-    def perform_create(self, serializer):
-        
-        video_id = self.kwargs.get('video_pk')
-        serializer.save(
-            author=self.request.user,
-            video_id=video_id
-        )
-    
-    # get_queryset 을 오버라이드하여 특정 영상에 달린 댓글만 필터링
     def get_queryset(self):
-        # url로부터 vudeo_id 값을 가져와서, 해당 video 에 달린 댓글만 조회한다
-        video_id = self.kwargs.get('video_pk')
-        return super().get_queryset().filter(video_id=video_id)
+        # URL에 video_pk가 있으면 비디오 댓글을, post_pk가 있으면 게시글 댓글을 필터링
+        if 'video_pk' in self.kwargs:
+            return self.queryset.filter(content_type__model='video', object_id=self.kwargs['video_pk'])
+        elif 'post_pk' in self.kwargs:
+            return self.queryset.filter(content_type__model='post', object_id=self.kwargs['post_pk'])
+        return self.queryset.none() # 둘 다 없으면 빈 쿼리셋 반환
+
+    def perform_create(self, serializer):
+        content_object = None
+        if 'video_pk' in self.kwargs:
+            content_object = Video.objects.get(pk=self.kwargs['video_pk'])
+        elif 'post_pk' in self.kwargs:
+            content_object = Post.objects.get(pk=self.kwargs['post_pk'])
+        
+        serializer.save(author=self.request.user, content_object=content_object)

@@ -17,6 +17,7 @@ class PostSerializer(serializers.ModelSerializer):
             'updated_at',
             'is_author'
         ]
+        read_only_fields = ['author']
 
     def get_is_author(self, obj):
         request = self.context.get('request')
@@ -34,12 +35,6 @@ class CommentSerializer(serializers.ModelSerializer):
             'author',
             'author_username', 
             'content', 
-            'created_at', 
-            'video'
+            'created_at',
         ]
-
-        # video 필드는 URL 을 통해 자동으로 주압될 예정으로 사용자가 직접 읽지 못하도록 readonly 설정 하기
-
-        extra_kwargs = {
-            'video' : {'read_only':True},
-        }
+        read_only_fields = ['author']
