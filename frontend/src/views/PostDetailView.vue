@@ -60,7 +60,8 @@
           <button @click="savePost" class="text-sm ...">저장</button>
           <button @click="cancelEditing" class="text-sm ...">취소</button>
         </template>
-      </div>d
+      </div>
+      d
     </div>
 
     <div
