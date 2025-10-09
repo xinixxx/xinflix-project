@@ -1,12 +1,12 @@
 <template>
-  <div id="app" class="flex flex-col bg-gray-100 min-h-screen dark:bg-gray-900">
-    <header class="bg-white shadow dark:bg-gray-800">
+  <div id="app" class="flex flex-col bg-netflix-black min-h-screen">
+    <header class="bg-netflix-black shadow-md z-10">
       <nav
         class="container mx-auto px-6 py-4 flex justify-between items-center"
       >
         <router-link
           to="/"
-          class="text-xl font-bold text-gray-800 dark:text-gray-100"
+          class="text-3xl font-display text-netflix-red tracking-wider"
           >XINFLIX</router-link
         >
         <div class="flex items-center space-x-4">

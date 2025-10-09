@@ -2,6 +2,9 @@ from rest_framework import permissions
 
 class IsUploaderOrReadOnly(permissions.BasePermission):
     # 객체의 uploader 만 수정/삭제를 허용하고 그 외에는 읽기만 허용하는 커스텀 권한
+    def has_permission(self, request, view):
+        return request.method in permissions.SAFE_METHODS or (request.user and request.user.is_authenticated)
+
     def has_object_permission(self, request, view, obj):
         
         if request.method in permissions.SAFE_METHODS:

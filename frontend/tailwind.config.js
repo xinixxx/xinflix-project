@@ -11,6 +11,8 @@ module.exports = {
         secondary: "#10B981",
         "dark-card": "#1F2937",
         "dark-bg": "#111827",
+        "netflix-red": "#E50914",
+        "netflix-black": "#141414",
       },
     },
     accentColor: ({ theme }) => ({
@@ -315,6 +317,7 @@ module.exports = {
     },
     fontFamily: {
       sans: [
+        '"Roboto"',
         "ui-sans-serif",
         "system-ui",
         "sans-serif",
@@ -341,6 +344,7 @@ module.exports = {
         '"Courier New"',
         "monospace",
       ],
+      display: ["Bebas Neue", "sans-serif"],
     },
     fontSize: {
       xs: ["0.75rem", { lineHeight: "1rem" }],

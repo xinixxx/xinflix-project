@@ -84,7 +84,10 @@ class LikeToggleView(APIView):
             like_obj.delete()
             return Response({'status': 'unliked'}, status=status.HTTP_204_NO_CONTENT)
 
+from rest_framework import permissions
+
 class IncrementViewCountView(APIView):
+    permission_classes = [permissions.AllowAny] # 조회수 증가는 누구나 가능
     def post(self, request, video_pk):
         try:
             video = Video.objects.get(pk=video_pk)

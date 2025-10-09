@@ -60,7 +60,7 @@
           <button @click="savePost" class="text-sm ...">저장</button>
           <button @click="cancelEditing" class="text-sm ...">취소</button>
         </template>
-      </div>
+      </div>d
     </div>
 
     <div
@@ -78,28 +78,15 @@
           v-model="newComment.content"
           placeholder="댓글을 추가하세요..."
           required
-          class="w-full px-4 py-2 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          class="w-full ..."
         ></textarea>
-        <button
-          type="submit"
-          class="mt-2 float-right bg-blue-500 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-600 transition-colors duration-200"
-        >
-          등록
-        </button>
+        <button type="submit" class="mt-2 ...">등록</button>
       </form>
       <ul class="comment-list space-y-4">
-        <li
-          v-for="comment in comments"
-          :key="comment.id"
-          class="border-t border-gray-200 dark:border-gray-700 pt-4"
-        >
-          <p class="font-semibold text-gray-800 dark:text-gray-200">
-            {{ comment.author_username }}
-          </p>
-          <p class="text-gray-600 dark:text-gray-300 my-1">
-            {{ comment.content }}
-          </p>
-          <span class="text-xs text-gray-500 dark:text-gray-400">{{
+        <li v-for="comment in comments" :key="comment.id" class="border-t ...">
+          <p class="font-semibold ...">{{ comment.author_username }}</p>
+          <p class="text-gray-600 ...">{{ comment.content }}</p>
+          <span class="text-xs ...">{{
             new Date(comment.created_at).toLocaleString()
           }}</span>
         </li>
@@ -160,7 +147,7 @@ const fetchData = async (id) => {
 // 댓글 작성 함수
 const submitComment = async () => {
   try {
-    await api.createPostComments(postId.value, newComment);
+    await api.createPostComment(postId.value, newComment);
     newComment.content = "";
     // 댓글 작성 후 댓글 목록만 새로고침
     const response = await api.getPostComments(postId.value);
@@ -170,6 +157,7 @@ const submitComment = async () => {
     alert("댓글 작성에 실패했습니다.");
   }
 };
+
 const removePost = async () => {
   if (confirm("정말로 이 게시글을 삭제하시겠습니까?")) {
     try {

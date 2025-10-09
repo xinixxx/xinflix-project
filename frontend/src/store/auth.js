@@ -8,7 +8,17 @@ export const useAuthStore = defineStore("auth", {
     user: null,
   }),
   getters: {
-    isLoggedIn: (state) => !!state.accessToken, // accessToken 이 있으면 true, 없으면 false 반환
+    isLoggedIn: (state) => {
+      if (!state.accessToken) {
+        return false;
+      }
+      try {
+        const decoded = jwtDecode(state.accessToken);
+        return decoded.exp * 1000 > Date.now();
+      } catch (e) {
+        return false;
+      }
+    },
   },
   actions: {
     // 로그인 성공 시 토큰을 저장하는 액션
@@ -40,10 +50,14 @@ export const useAuthStore = defineStore("auth", {
       if (this.accessToken) {
         try {
           const decoded = jwtDecode(this.accessToken);
-          this.user = decoded;
+          if (decoded.exp * 1000 < Date.now()) {
+            this.logout();
+          } else {
+            this.user = decoded;
+          }
         } catch (e) {
           console.error("Error decoding token on init", e);
-          this.logout(); // 토큰이 유효하지 않으면 로그아웃 처리
+          this.logout();
         }
       }
     },
